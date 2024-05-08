@@ -3,6 +3,8 @@ package com.danmecha.dependencyInjection;
 import com.danmecha.dependencyInjection.data.Order;
 import com.danmecha.dependencyInjection.data.OrderRecord;
 import com.danmecha.dependencyInjection.postgresql.repository.*;
+import com.danmecha.dependencyInjection.postgresql.services.StudentMapper;
+import com.danmecha.dependencyInjection.postgresql.services.StudentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,30 +15,35 @@ import java.util.List;
 public class FirstController {
 
     public final StudentRepository repo;
+    public final StudentMapper studentMapper;
+    public  final StudentService studentService;
 
-    private Student toStudent(StudentDto dto) {
-        Student student = new Student();
-        student.setFirstname(dto.firstname());
-        student.setLastname(dto.lastname());
-        student.setEmail(dto.email());
+    //moved to the student mapper service
+//    private Student toStudent(StudentDto dto) {
+//        Student student = new Student();
+//        student.setFirstname(dto.firstname());
+//        student.setLastname(dto.lastname());
+//        student.setEmail(dto.email());
+//
+//        School school = new School();
+//        school.setId(dto.schoolId());
+//        student.setSchool(school);
+//
+//        return student;
+//    }
+//
+//    private StudentResponseDto toStudentResponse(Student student) {
+//        return new StudentResponseDto(
+//                student.getFirstname(),
+//                student.getLastname(),
+//                student.getEmail()
+//        );
+//    }
 
-        School school = new School();
-        school.setId(dto.schoolId());
-        student.setSchool(school);
-
-        return student;
-    }
-
-    private StudentResponseDto toStudentResponse(Student student) {
-        return new StudentResponseDto(
-                student.getFirstname(),
-                student.getLastname(),
-                student.getEmail()
-        );
-    }
-
-    public FirstController(StudentRepository  repo) {
+    public FirstController(StudentRepository  repo, StudentMapper studentMapper, StudentService studentService) {
         this.repo = repo;
+        this.studentMapper = studentMapper;
+        this.studentService = studentService;
     }
 
     @GetMapping("/hello")
@@ -74,29 +81,47 @@ public class FirstController {
         return "Request says: " + order.toString();
     }
 
+//    @PostMapping("/students")
+//    public String post(
+//            @RequestBody StudentDto student
+//    ) {
+//        Student student1 = toStudent(student);
+//        //send data to the db
+//        repo.save(student1);
+//        return "Request was acccepted and message is : " + student1.getFirstname() + " " + student1.getLastname();
+//    }
+
     @PostMapping("/students")
-    public String post(
+    public StudentResponseDto post(
             @RequestBody StudentDto student
     ) {
-        Student student1 = toStudent(student);
-        //send data to the db
-        repo.save(student1);
-        return "Request was acccepted and message is : " + student1.getFirstname() + " " + student1.getLastname();
+//        Student student1 = studentMapper.toStudent(student);
+//        //send data to the db
+//        repo.save(student1);
+////        return "Request was acccepted and message is : " + student1.getFirstname() + " " + student1.getLastname();
+//        return studentMapper.toStudentResponse(student1);
+
+        //gotten from the StudentService
+
+        return studentService.saveStudent(student);
     }
 
 
     //getting data from the database by id
     @GetMapping("/students/{student-id}")
-    public Student findStudentById(
+    public StudentResponseDto findStudentById(
             @PathVariable("student-id") Integer id
     ){
-        return repo.findById(id).orElse(new Student());
+//        return repo.findById(id).orElse(new Student());
+        return studentService.findStudentById(id);
     }
 
     //get all the students
     @GetMapping("/students")
-    public List<Student> findAllStudents() {
-        return repo.findAll();
+    public List<StudentResponseDto> findAllStudents() {
+//        return repo.findAll();
+        return studentService.findAllStudents();
+
     }
 
     //get students from the Db by name
